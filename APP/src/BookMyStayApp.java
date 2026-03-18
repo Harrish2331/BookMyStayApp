@@ -1,52 +1,38 @@
-import java.util.*;
+import java.io.*;
 
-class Reservation {
-    String name;
-
-    public Reservation(String name) {
-        this.name = name;
-    }
+class RoomInventory {
+    int rooms = 5;
 }
 
-class BookingQueue {
-    Queue<Reservation> queue = new LinkedList<>();
+class FilePersistenceService {
 
-    public synchronized void add(Reservation r) {
-        queue.add(r);
+    public void save(RoomInventory inv, String file) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+            bw.write("rooms=" + inv.rooms);
+        } catch (Exception e) {
+            System.out.println("Error saving");
+        }
     }
 
-    public synchronized Reservation get() {
-        return queue.poll();
-    }
-}
-
-class Processor implements Runnable {
-    BookingQueue queue;
-
-    public Processor(BookingQueue q) {
-        this.queue = q;
-    }
-
-    public void run() {
-        Reservation r;
-        while ((r = queue.get()) != null) {
-            System.out.println(Thread.currentThread().getName() +
-                    " processing " + r.name);
+    public void load(RoomInventory inv, String file) {
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line = br.readLine();
+            inv.rooms = Integer.parseInt(line.split("=")[1]);
+        } catch (Exception e) {
+            System.out.println("Error loading");
         }
     }
 }
 
 public class BookMyStayApp {
     public static void main(String[] args) {
-        BookingQueue queue = new BookingQueue();
+        RoomInventory inv = new RoomInventory();
+        FilePersistenceService fps = new FilePersistenceService();
 
-        queue.add(new Reservation("User1"));
-        queue.add(new Reservation("User2"));
+        fps.save(inv, "data.txt");
+        inv.rooms = 0;
 
-        Thread t1 = new Thread(new Processor(queue));
-        Thread t2 = new Thread(new Processor(queue));
-
-        t1.start();
-        t2.start();
+        fps.load(inv, "data.txt");
+        System.out.println("Rooms after recovery: " + inv.rooms);
     }
 }
