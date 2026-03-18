@@ -1,45 +1,39 @@
-import java.util.*;
-
-class Reservation {
-    String guestName;
-    String roomType;
-
-    public Reservation(String guestName, String roomType) {
-        this.guestName = guestName;
-        this.roomType = roomType;
-    }
-
-    public String toString() {
-        return guestName + " - " + roomType;
+class InvalidBookingException extends Exception {
+    public InvalidBookingException(String message) {
+        super(message);
     }
 }
 
-class BookingHistory {
-    private List<Reservation> confirmedReservations;
+class RoomInventory {
+    int rooms = 1;
 
-    public BookingHistory() {
-        confirmedReservations = new ArrayList<>();
+    public void bookRoom() throws InvalidBookingException {
+        if (rooms <= 0) {
+            throw new InvalidBookingException("No rooms available");
+        }
+        rooms--;
     }
+}
 
-    public void addReservation(Reservation r) {
-        confirmedReservations.add(r);
-    }
-
-    public List<Reservation> getConfirmedReservations() {
-        return confirmedReservations;
+class ReservationValidator {
+    public void validate(String name) throws InvalidBookingException {
+        if (name == null || name.isEmpty()) {
+            throw new InvalidBookingException("Invalid name");
+        }
     }
 }
 
 public class BookMyStayApp {
     public static void main(String[] args) {
-        BookingHistory history = new BookingHistory();
+        RoomInventory inventory = new RoomInventory();
+        ReservationValidator validator = new ReservationValidator();
 
-        history.addReservation(new Reservation("Shyam", "Deluxe"));
-        history.addReservation(new Reservation("Gokul", "Standard"));
-
-        System.out.println("Booking History:");
-        for (Reservation r : history.getConfirmedReservations()) {
-            System.out.println(r);
+        try {
+            validator.validate("Shyam");
+            inventory.bookRoom();
+            System.out.println("Booking Successful");
+        } catch (InvalidBookingException e) {
+            System.out.println(e.getMessage());
         }
     }
 }
