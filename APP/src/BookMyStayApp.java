@@ -1,4 +1,4 @@
-public class BookMyStayAppgti{
+public class BookMyStayApp{
 
     /**
      * Main method - Entry point of the application
