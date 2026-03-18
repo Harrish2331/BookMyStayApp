@@ -1,3 +1,15 @@
+/**
+ * BookMyStayApp
+ *
+ * Use Case 4: Room Search & Availability Check
+ *
+ * Demonstrates read-only room search using centralized inventory.
+ * Shows available room types with details without modifying system state.
+ *
+ * @author Dhanussz
+ * @version 4.0
+ */
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +36,7 @@ abstract class Room {
     }
 }
 
-// Room Types
+// Room types
 class SingleRoom extends Room {
     public SingleRoom() {
         super("Single Room", 1, 2000);
@@ -43,12 +55,11 @@ class SuiteRoom extends Room {
     }
 }
 
-// Inventory Class (NEW CONCEPT)
+// Inventory Class
 class RoomInventory {
 
     private HashMap<String, Integer> inventory;
 
-    // Constructor initializes availability
     public RoomInventory() {
         inventory = new HashMap<>();
         inventory.put("Single Room", 5);
@@ -56,21 +67,41 @@ class RoomInventory {
         inventory.put("Suite Room", 2);
     }
 
-    // Get availability
     public int getAvailability(String roomType) {
         return inventory.getOrDefault(roomType, 0);
     }
 
-    // Update availability
     public void updateAvailability(String roomType, int count) {
         inventory.put(roomType, count);
     }
 
-    // Display full inventory
-    public void displayInventory() {
-        System.out.println("\n===== Current Room Inventory =====");
-        for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
-            System.out.println(entry.getKey() + " -> Available: " + entry.getValue());
+    public Map<String, Integer> getAllInventory() {
+        return new HashMap<>(inventory); // return copy for safety
+    }
+}
+
+// Search Service (read-only)
+class RoomSearchService {
+
+    private RoomInventory inventory;
+
+    public RoomSearchService(RoomInventory inventory) {
+        this.inventory = inventory;
+    }
+
+    public void searchAvailableRooms(Room[] rooms) {
+        System.out.println("\n===== Available Rooms =====");
+        boolean anyAvailable = false;
+        for (Room room : rooms) {
+            int available = inventory.getAvailability(room.getRoomType());
+            if (available > 0) {
+                room.displayDetails();
+                System.out.println("Available: " + available + "\n");
+                anyAvailable = true;
+            }
+        }
+        if (!anyAvailable) {
+            System.out.println("No rooms are currently available.");
         }
     }
 }
@@ -85,31 +116,23 @@ public class BookMyStayApp {
         Room doubleRoom = new DoubleRoom();
         Room suite = new SuiteRoom();
 
-        // Initialize centralized inventory
+        Room[] allRooms = { single, doubleRoom, suite };
+
+        // Initialize inventory
         RoomInventory inventory = new RoomInventory();
 
-        System.out.println("===== Book My Stay App (Version 3.0) =====");
+        System.out.println("===== Book My Stay App (Version 4.0) =====");
 
-        System.out.println("\n--- Room Details ---");
+        // Initialize search service
+        RoomSearchService searchService = new RoomSearchService(inventory);
 
-        single.displayDetails();
-        System.out.println("Available: " + inventory.getAvailability(single.getRoomType()));
+        // Perform read-only search
+        searchService.searchAvailableRooms(allRooms);
 
-        System.out.println();
-        doubleRoom.displayDetails();
-        System.out.println("Available: " + inventory.getAvailability(doubleRoom.getRoomType()));
-
-        System.out.println();
-        suite.displayDetails();
-        System.out.println("Available: " + inventory.getAvailability(suite.getRoomType()));
-
-        // Show full inventory
-        inventory.displayInventory();
-
-        // Example update
-        System.out.println("\nUpdating Single Room availability...");
-        inventory.updateAvailability("Single Room", 4);
-
-        inventory.displayInventory();
+        // Demonstrate inventory is not modified
+        System.out.println("Inventory remains unchanged after search:");
+        for (Map.Entry<String, Integer> entry : inventory.getAllInventory().entrySet()) {
+            System.out.println(entry.getKey() + " -> Available: " + entry.getValue());
+        }
     }
 }
