@@ -1,39 +1,37 @@
-class InvalidBookingException extends Exception {
-    public InvalidBookingException(String message) {
-        super(message);
+import java.util.*;
+
+class Reservation {
+    String name;
+
+    public Reservation(String name) {
+        this.name = name;
     }
 }
 
 class RoomInventory {
     int rooms = 1;
 
-    public void bookRoom() throws InvalidBookingException {
-        if (rooms <= 0) {
-            throw new InvalidBookingException("No rooms available");
-        }
-        rooms--;
+    public void releaseRoom() {
+        rooms++;
     }
 }
 
-class ReservationValidator {
-    public void validate(String name) throws InvalidBookingException {
-        if (name == null || name.isEmpty()) {
-            throw new InvalidBookingException("Invalid name");
-        }
+class CancellationService {
+    Stack<String> stack = new Stack<>();
+
+    public void cancel(Reservation r, RoomInventory inventory) {
+        inventory.releaseRoom();
+        stack.push(r.name);
+        System.out.println("Cancelled booking for " + r.name);
     }
 }
 
 public class BookMyStayApp {
     public static void main(String[] args) {
         RoomInventory inventory = new RoomInventory();
-        ReservationValidator validator = new ReservationValidator();
+        Reservation r = new Reservation("Shyam");
 
-        try {
-            validator.validate("Shyam");
-            inventory.bookRoom();
-            System.out.println("Booking Successful");
-        } catch (InvalidBookingException e) {
-            System.out.println(e.getMessage());
-        }
+        CancellationService cs = new CancellationService();
+        cs.cancel(r, inventory);
     }
 }
