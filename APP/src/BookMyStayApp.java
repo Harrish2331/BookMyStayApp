@@ -8,30 +8,45 @@ class Reservation {
     }
 }
 
-class RoomInventory {
-    int rooms = 1;
+class BookingQueue {
+    Queue<Reservation> queue = new LinkedList<>();
 
-    public void releaseRoom() {
-        rooms++;
+    public synchronized void add(Reservation r) {
+        queue.add(r);
+    }
+
+    public synchronized Reservation get() {
+        return queue.poll();
     }
 }
 
-class CancellationService {
-    Stack<String> stack = new Stack<>();
+class Processor implements Runnable {
+    BookingQueue queue;
 
-    public void cancel(Reservation r, RoomInventory inventory) {
-        inventory.releaseRoom();
-        stack.push(r.name);
-        System.out.println("Cancelled booking for " + r.name);
+    public Processor(BookingQueue q) {
+        this.queue = q;
+    }
+
+    public void run() {
+        Reservation r;
+        while ((r = queue.get()) != null) {
+            System.out.println(Thread.currentThread().getName() +
+                    " processing " + r.name);
+        }
     }
 }
 
 public class BookMyStayApp {
     public static void main(String[] args) {
-        RoomInventory inventory = new RoomInventory();
-        Reservation r = new Reservation("Shyam");
+        BookingQueue queue = new BookingQueue();
 
-        CancellationService cs = new CancellationService();
-        cs.cancel(r, inventory);
+        queue.add(new Reservation("User1"));
+        queue.add(new Reservation("User2"));
+
+        Thread t1 = new Thread(new Processor(queue));
+        Thread t2 = new Thread(new Processor(queue));
+
+        t1.start();
+        t2.start();
     }
 }
